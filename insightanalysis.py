@@ -25,7 +25,9 @@ from math import sqrt
 from scipy.stats import chi2_contingency
 import scipy.stats as stats
 from sklearn.ensemble import ExtraTreesRegressor
-
+import time
+import mysql.connector
+from collections.abc import Iterable
 
 
 st.set_page_config(page_title="Data Dumper",
@@ -63,7 +65,9 @@ if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
 
 
-def upload():   
+def upload(): 
+# with st.spinner('Wait for it...'):
+       # time.sleep(2)  
  global df
  if df.empty:
     st.write( "Enter appropriate values")
@@ -121,8 +125,28 @@ def upload():
                 sn.heatmap(df.corr(), ax=ax)
                 st.write("A heatmap ( or heat map) is a graphical representation of data where values are depicted by color./n  They are essential in detecting what does or doesn't work on a website or product page. By experimenting with how certain buttons and elements are positioned on your website, heatmaps allow you to evaluate your product’s performance and increase user engagement and retention as you prioritize the jobs to be done that boost customer value. Heatmaps make it easy to visualize complex data and understand it at a glance:")
                 st.pyplot(fig)
+        with tab2:
+                d5 = st.text_input('Enter column name for plotting : ')
+                if d5 == "":
+                    st.write("Enter appropriate values")
+                plot = df[d5].values
+                progress_bar = st.sidebar.progress(0)
+                st.sidebar.write("Plotting...")
+                status_text = st.sidebar.empty()
+                last_rows = np.random.randn(1, 1)
+                chart = st.line_chart(plot)
 
+                for i in range(1, 101):
+                    new_rows = last_rows[-1, :] + np.random.randn(5, 1).cumsum(axis=0)
+                    status_text.text("%i%% Complete" % i)
+                    chart.add_rows(new_rows)
+                    progress_bar.progress(i)
+                    last_rows = new_rows
+                    time.sleep(0.05)
+                progress_bar.empty()
 def mlr():
+# with st.spinner('Wait for it...'):
+       # time.sleep(2)
  global df
  if df.empty:
     st.write( "Enter appropriate values")
@@ -216,13 +240,10 @@ def mlr():
                 predictedCO2 = regr.predict([[val1, val2]])
                 st.write("Predicted Value: ")
                 st.write(predictedCO2)
-
-def ts():
-    st.write("Time Series")
-
-
-
+                
 def feature():
+    # with st.spinner('Wait for it...'):
+       # time.sleep(2)
     st.markdown(f'# {list(page_names_to_funcs.keys())[4]}')
     global df
     st.write(df)
@@ -236,21 +257,21 @@ def feature():
                     df[columns] = label_encoders[columns].fit_transform(df[columns])
         d2 = st.text_input('Enter a required : ')
         if d2 == "":
-                st.write("Enter appropriate values",tooltips=list)
+                st.write("Enter feature value",tooltips=list)
         else:    
                         X = df.drop([d2], axis=1).values
                         y = df[d2]
                         model = ExtraTreesRegressor()
                         model.fit(X,y)
                         st.write(model.feature_importances_)
+                        st.info('The highest value column has higher dependencies in the feature variable', icon="ℹ️")
 
 
 page_names_to_funcs = {
     "Main": home,
     "Data PreProcessing":upload,
     "Regression and Prediction": mlr,
-    "Feature Extraction": feature,
-    "Time Series": ts
+    "Feature Extraction": feature
 }
 
 
